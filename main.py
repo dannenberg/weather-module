@@ -13,10 +13,10 @@ from viam.resource.registry import Registry, ResourceCreatorRegistration
 from viam.resource.types import Model, ModelFamily
 from viam.utils import ValueTypes
 
+# the rest url we wish to query
 weather_api_url = "http://api.weatherapi.com/v1/current.json"
 
 class WeatherApiSensor(Sensor):
-    # Subclass the Viam Sensor component and implement the required functions
     MODEL: ClassVar[Model] = Model(ModelFamily("viam-labs", "weather-api"), "current")
 
     def __init__(self, name: str, api_key: str, zipcode: str):
@@ -26,22 +26,20 @@ class WeatherApiSensor(Sensor):
 
     @classmethod
     def new(cls, config: ComponentConfig, dependencies: Mapping[ResourceName, ResourceBase]) -> Self:
+        # parse the args from the config and pass 'em into the constructor for later use.
         sensor = cls(config.name, config.attributes.fields["api_key"].string_value, config.attributes.fields["zipcode"].string_value)
         return sensor
 
     async def get_readings(self, extra: Optional[Dict[str, Any]] = None, **kwargs) -> Mapping[str, Any]:
+        # here we build up and submit a GET request, you could rework this to be a POST request if they API you're hitting needs it.
         response = requests.get(''.join([weather_api_url, "?key=", self.api_key, "&q=", self.zipcode]))
 
+        # return the status code as an error if we dont get a 200 OK back.
         if response.status_code != 200:
             return {"error": f"weatherapi.com didn't return 200, instead got {response.status_code}"}
 
+        # this would be a great place to modify the data returned if the format direct from the API isn't to your liking.
         return response.json()
-
-    async def do_command(self, command: Mapping[str, ValueTypes], *, timeout: Optional[float] = None, **kwargs) -> Mapping[str, ValueTypes]:
-        raise NotImplemented('do command not supported')
-
-    async def get_geometries(self, *, timeout: Optional[float] = None, **kwargs) -> Mapping[str, ValueTypes]:
-        raise NotImplemented('get geometries not supported')
 
 
 async def main():
