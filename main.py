@@ -17,7 +17,7 @@ from viam.utils import ValueTypes
 weather_api_url = "http://api.weatherapi.com/v1/current.json"
 
 class WeatherApiSensor(Sensor):
-    MODEL: ClassVar[Model] = Model(ModelFamily("viam-labs", "weather-api"), "current")
+    MODEL: ClassVar[Model] = Model(ModelFamily("viam-soleng", "weather-api"), "current")
 
     def __init__(self, name: str, api_key: str, zipcode: str):
         self.api_key = api_key
